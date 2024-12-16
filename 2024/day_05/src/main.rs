@@ -38,7 +38,7 @@ fn main() {
 
     let mut sum = 0i32;
     for (ind, line) in pages_str.lines().enumerate() {
-        let mut pages: Vec<&str> = line.split(',').collect();
+        let pages: Vec<&str> = line.split(',').collect();
         
         if is_valid_update(as_hm(&pages), instruction_str) {
             continue;
