@@ -49,32 +49,36 @@ fn main() {
             // Add nodes
             let mut queue: VecDeque<(usize, usize)> = VecDeque::new();
             queue.push_back((i, g));
+            board[i][g].visited = true;
             while let Some(node) = queue.pop_front() {
-                board[node.0][node.1].visited = true;
                 visual_board[node.0 * 2 + 1][node.1 * 2 + 1] = board[node.0][node.1].value;
 
                 if node.0 > 0 && 
                     !board[node.0 - 1][node.1].visited &&
                     board[node.0 - 1][node.1].value == board[node.0][node.1].value
                 {
+                    board[node.0 - 1][node.1].visited = true;
                     queue.push_back((node.0 - 1, node.1));
                 }
                 if node.0 < board.len() - 1 && 
                     !board[node.0 + 1][node.1].visited &&
                     board[node.0 + 1][node.1].value == board[node.0][node.1].value
                 {
+                    board[node.0 + 1][node.1].visited = true;
                     queue.push_back((node.0 + 1, node.1));
                 }
                 if node.1 > 0 && 
                     !board[node.0][node.1 - 1].visited &&
                     board[node.0][node.1 - 1].value == board[node.0][node.1].value
                 {
+                    board[node.0][node.1 - 1].visited = true;
                     queue.push_back((node.0, node.1 - 1));
                 }
                 if node.1 < board[0].len() - 1 && 
                     !board[node.0][node.1 + 1].visited &&
                     board[node.0][node.1 + 1].value == board[node.0][node.1].value
                 {
+                    board[node.0][node.1 + 1].visited = true;
                     queue.push_back((node.0, node.1 + 1));
                 }
             }
