@@ -50,7 +50,7 @@ impl Map {
             robot.pass_second( self.x, self.y );
         }
     }
-    fn safety_factor ( self ) -> usize {
+    fn _safety_factor ( self ) -> usize {
         let quadrant_1 = self.robots
             .iter()
             .filter(|rb| ((*rb).x as usize) < self.x / 2 && ((*rb).y as usize) < self.y / 2 )
