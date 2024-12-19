@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+const MOVEABLES: [char; 2] = ['E', '.'];
 
 #[derive(Debug, PartialEq, Clone)]
 enum Facing {
@@ -7,16 +7,80 @@ enum Facing {
     South,
     West
 }
-#[derive(Debug, Clone)]
-struct NodeToProcess {
-    x: usize,
-    y: usize,
+fn navigate (
+    lowest_score: &mut Option<usize>,
+    map: &Vec<Vec<char>>,
     score: usize,
-    facing: Facing
-}
-impl PartialEq<NodeToProcess> for NodeToProcess {
-    fn eq(&self, other: &NodeToProcess) -> bool {
-        self.x == other.x && self.y == other.y && self.facing == other.facing
+    i: usize,
+    g: usize,
+    facing: Facing,
+    mut visited: Vec<(usize, usize)>
+) {
+    //println!("Navigated to ({g}, {i}) ({})", map[i][g]);
+
+    if map[i][g] == 'E' {
+        println!("Hit `E` with a score of {score}");
+        if let Some(lowest_score) = lowest_score {
+            if score < *lowest_score {
+                *lowest_score = score;
+            }
+        } else {
+            *lowest_score = Some(score);
+        }
+        return;
+    }
+
+    if let Some(lowest_score) = lowest_score {
+        if score >= *lowest_score {
+            //println!("Score ({score}) impossibly high, aborting");
+            return;
+        }
+    }
+
+    visited.push((i, g));
+    if i != 0 && !visited.contains(&(i - 1, g)) && MOVEABLES.contains(&map[i - 1][g]) {
+        navigate (
+            lowest_score,
+            map,
+            score + 1 + cost_to_rotate_to(facing.clone(), Facing::North),
+            i - 1,
+            g,
+            Facing::North,
+            visited.clone()
+        );
+    }
+    if i != map.len() - 1 && !visited.contains(&(i + 1, g)) && MOVEABLES.contains(&map[i + 1][g]) {
+        navigate (
+            lowest_score,
+            map,
+            score + 1 + cost_to_rotate_to(facing.clone(), Facing::South),
+            i + 1,
+            g,
+            Facing::South,
+            visited.clone()
+        );
+    }
+    if g != 0 && !visited.contains(&(i, g - 1)) && MOVEABLES.contains(&map[i][g - 1]) {
+        navigate (
+            lowest_score,
+            map,
+            score + 1 + cost_to_rotate_to(facing.clone(), Facing::West),
+            i,
+            g - 1,
+            Facing::West,
+            visited.clone()
+        );
+    }
+    if g != map[i].len() - 1 && !visited.contains(&(i, g + 1)) && MOVEABLES.contains(&map[i][g + 1]) {
+        navigate (
+            lowest_score,
+            map,
+            score + 1 + cost_to_rotate_to(facing.clone(), Facing::East),
+            i,
+            g + 1,
+            Facing::East,
+            visited.clone()
+        );
     }
 }
 fn cost_to_rotate_to (
@@ -39,94 +103,37 @@ fn cost_to_rotate_to (
     return 2000;
 }
 fn main() {
-    let board = std::fs::read_to_string("input.txt")
+    let map = std::fs::read_to_string("input.txt")
         .unwrap()
         .lines()
         .map(|line| line.chars().collect::<Vec<char>>())
         .collect::<Vec<Vec<char>>>();
 
-    let mut start_x = 0;
-    let mut start_y = 0;
+    let mut start_i = 0;
+    let mut start_g = 0;
 
-    for i in 0..board.len() {
-        for g in 0..board[i].len() {
-            if board[i][g] == 'S' {
-                start_x = g;
-                start_y = i;
+    for i in 0..map.len() {
+        for g in 0..map[i].len() {
+            if map[i][g] == 'S' {
+                start_i = i;
+                start_g = g;
             }
-            print!("{}", board[i][g]);
+            print!("{}", map[i][g]);
         }
         println!("");
     }
 
-    let mut visited: Vec<NodeToProcess> = Vec::new();
-    let mut to_process: VecDeque<NodeToProcess> = VecDeque::new();
-    to_process.push_back(NodeToProcess {
-        x: start_x,
-        y: start_y,
-        score: 0,
-        facing: Facing::East
-    });
     let mut lowest_score: Option<usize> = None;
-    while let Some(node) = to_process.pop_front() {
-        visited.push(node.clone());
 
-        println!("{:#?}", node);
-        
-        if board[node.y][node.x] == 'E' {
-            if let Some(current_score) = lowest_score {
-                lowest_score = Some(current_score.min(node.score));
-            } else {
-                lowest_score = Some(node.score);
-            }
-        }
-        
-        if node.y > 0 && ( board[node.y - 1][node.x] == '.' || board[node.y - 1][node.x] == 'E' ) {
-            let would_add = NodeToProcess {
-                x: node.x,
-                y: node.y - 1,
-                score: node.score + cost_to_rotate_to(node.facing.clone(), Facing::North) + 1,
-                facing: Facing::North
-            };
-            if !visited.contains(&would_add) {
-                to_process.push_back(would_add);
-            }
-            
-        }
-        if node.x < board[0].len() - 1 && ( board[node.y][node.x + 1] == '.' || board[node.y][node.x + 1] == 'E' ) {
-            let would_add = NodeToProcess {
-                x: node.x + 1,
-                y: node.y,
-                score: node.score + cost_to_rotate_to(node.facing.clone(), Facing::East) + 1,
-                facing: Facing::East
-            };
-            if !visited.contains(&would_add) {
-                to_process.push_back(would_add);
-            }
-        }
-        if node.y < board.len() - 1 && ( board[node.y + 1][node.x] == '.' || board[node.y + 1][node.x] == 'E' ) {
-            let would_add = NodeToProcess {
-                x: node.x,
-                y: node.y + 1,
-                score: node.score + cost_to_rotate_to(node.facing.clone(), Facing::South) + 1,
-                facing: Facing::South
-            };
-            if !visited.contains(&would_add) {
-                to_process.push_back(would_add);
-            }
-        }
-        if node.x > 0 && ( board[node.y][node.x - 1] == '.' || board[node.y][node.x - 1] == 'E' ) {
-            let would_add = NodeToProcess {
-                x: node.x - 1,
-                y: node.y,
-                score: node.score + cost_to_rotate_to(node.facing.clone(), Facing::West) + 1,
-                facing: Facing::West
-            };
-            if !visited.contains(&would_add) {
-                to_process.push_back(would_add);
-            }
-        }
-    }
+    navigate(
+        &mut lowest_score,
+        &map,
+        0,
+        start_i,
+        start_g,
+        Facing::East,
+        vec!()
+    );
 
-    println!("Lowest possible score: {lowest_score:?}");
+    println!("Lowest score: {lowest_score:?}");
 }
