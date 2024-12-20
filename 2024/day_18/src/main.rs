@@ -36,9 +36,9 @@ impl Board {
     }
     fn render ( &self ) {
         println!("Current board:");
-        for (i, row) in self.board.iter().enumerate() {
-            for (g, node) in row.iter().enumerate() {
-                print!("{} {:02} ", self.board[i][g].val, self.board[i][g].record.unwrap_or(0));
+        for row in self.board.iter() {
+            for node in row.iter() {
+                print!("{} {:02} ", node.val, node.record.unwrap_or(0));
             }
             println!();
         }
