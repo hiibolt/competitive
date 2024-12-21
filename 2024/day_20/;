@@ -231,14 +231,14 @@ fn main() {
     for (i, row) in base_board.board.iter().enumerate() {
         for (g, node) in row.iter().enumerate() {
             if node.val == '#' { continue; }
-            for radius in 2..21 {
-                for dist_row in 0..radius + 1 {
+            for radius in 1..2 {
+                for dist_row in 0..radius {
                     let dist_col = radius - dist_row;
                     let to_check = HashSet::from([
-                            (i as i32 + dist_row, g as i32 + dist_col), 
-                            (i as i32 + dist_row, g as i32 - dist_col), 
-                            (i as i32 - dist_row, g as i32 + dist_col),
-                            (i as i32 - dist_row, g as i32 - dist_col)
+                            (i as i32 + dist_row as i32, g as i32), 
+                            (i as i32 + 1 as i32, g as i32 + 1 as i32), 
+                            (i as i32, g as i32 + dist_col as i32),
+                            (i as i32 - 1 as i32, g as i32 + 1 as i32)
                     ]);
                     for (ni, ng) in to_check.into_iter() {
                         if ni < 0 || ng < 0 ||
@@ -253,7 +253,7 @@ fn main() {
                         let first = base_board.board[i][g].record;
                         let second = base_board.board[ni as usize][ng as usize].record;
                         if first.is_some() && second.is_some() &&
-                        (first.unwrap() as i32 - second.unwrap() as i32) >= 100 + radius {
+                        (first.unwrap() as i32 - second.unwrap() as i32).abs() >= 100 + 2 {
                             over_100 += 1;
                         }
                     }
