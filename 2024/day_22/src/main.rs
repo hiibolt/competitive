@@ -39,10 +39,12 @@ fn main() {
     let mut handles = Vec::new();
     let threads = input.len();
     let sum = Arc::new(Mutex::new(0usize));
+    let most_bananas = Arc::new(Mutex::new(0usize));
     let all_change_values = Arc::new(Mutex::new(HashMap::new()));
     for i in 0..threads {
         let mut secret = input[i];
         let sum_moveable = sum.clone();
+        let most_bananas_moveable = most_bananas.clone();
         let all_change_values_moveable = all_change_values.clone();
         handles.push(std::thread::spawn( move || {
            
@@ -68,6 +70,17 @@ fn main() {
                     *(all_change_values_moveable
                         .lock().expect("Couldn't lock entry hashmap!")
                         .entry(changes).or_insert(0)) += digit;
+                    
+                    let val = all_change_values_moveable
+                        .lock().expect("Couldn't lock entry hashmap!")
+                        .entry(changes).or_insert(0).clone();
+
+                    if val
+                        > 
+                        *most_bananas_moveable.lock().expect("Couldn't lock `most_bananas`")
+                    {
+                        *most_bananas_moveable.lock().expect("Couldn't lock `most_bananas`") = val;
+                    }
                     used_changes.insert(changes);
                 }
     
@@ -84,8 +97,5 @@ fn main() {
     }
 
     println!("Total sum: {}", sum.lock().unwrap());
-
-    let most_bananas = all_change_values.lock().unwrap()
-        .values().max().unwrap().clone();
-    println!("Highest possible banana count: {most_bananas}");
+    println!("Highest possible banana count: {}", most_bananas.lock().unwrap());
 }
