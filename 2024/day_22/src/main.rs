@@ -39,7 +39,7 @@ fn main() {
     let mut handles = Vec::new();
     let threads = input.len();
     let sum = Arc::new(Mutex::new(0usize));
-    let all_change_values = Arc::new(Mutex::new(Vec::new()));
+    let all_change_values = Arc::new(Mutex::new(HashMap::new()));
     for i in 0..threads {
         let mut secret = input[i];
         let sum_moveable = sum.clone();
@@ -49,9 +49,9 @@ fn main() {
             //println!("Secret `{secret}`");
     
             let mut last_digit = secret % 10;
-            let mut change_values: HashMap<(i32, i32, i32, i32), usize> = HashMap::new();
             let mut changes: (i32, i32, i32, i32) = (i32::MIN, i32::MIN, i32::MIN, i32::MIN);
-        
+            let mut used_changes = HashSet::new();
+    
             for i in 0..ITERATIONS {
                 secret = next(secret);
     
@@ -64,22 +64,17 @@ fn main() {
                 changes.2 = changes.3;
                 changes.3 = diff;
     
-                if i > 2 {
-                    if !change_values.contains_key(&changes) {
-                        change_values.insert(changes, digit);
-                    } else {
-                        //println!("occupied :3");
-                    }
+                if !used_changes.contains(&changes) && i > 2 {
+                    *(all_change_values_moveable
+                        .lock().expect("Couldn't lock entry hashmap!")
+                        .entry(changes).or_insert(0)) += digit;
+                    used_changes.insert(changes);
                 }
     
                 //println!("{digit}: {diff}");
                 last_digit = digit;
             }
-        
-            //println!("After {ITERATIONS} iterations: {secret}");
-            //println!("Change values: {change_values:?}");
-            all_change_values_moveable.lock().expect("Failed to lock change values!").push(change_values);
-    
+
             *(sum_moveable.lock().expect("Failed to lock sum!")) += secret;
         }));
     }
@@ -88,24 +83,9 @@ fn main() {
         handle.join().expect("Failed to join handle to main thread!");
     }
 
-    let sum = sum.lock().unwrap();
-    let all_change_values = all_change_values.lock().unwrap();
-    println!("Total sum: {}", sum);
+    println!("Total sum: {}", sum.lock().unwrap());
 
-    let all_keys = all_change_values
-        .iter()
-        .flat_map(|hm| hm.keys())
-        .collect::<HashSet<&(i32, i32, i32, i32)>>();
-
-    let mut most_bananas = 0usize;
-    for key in all_keys.into_iter() {
-        let mut current_bananas = 0usize;
-
-        for hm in all_change_values.iter() {
-            current_bananas += hm.get(key).unwrap_or(&0usize);
-        }
-
-        most_bananas = most_bananas.max(current_bananas);
-    }
+    let most_bananas = all_change_values.lock().unwrap()
+        .values().max().unwrap().clone();
     println!("Highest possible banana count: {most_bananas}");
 }
