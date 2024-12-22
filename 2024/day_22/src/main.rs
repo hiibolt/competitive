@@ -7,9 +7,7 @@ const ITERATIONS: usize = 2000;
 
 #[memoize]
 fn next ( secret: usize ) -> usize {
-    let step_1 = step_1(secret);
-    let step_2 = step_2(step_1);
-    step_3(step_2)
+    step_3(step_2(step_1(secret)))
 }
 #[memoize]
 fn step_1 ( secret: usize ) -> usize {
