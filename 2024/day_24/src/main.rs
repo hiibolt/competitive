@@ -1,18 +1,34 @@
-use std::collections::HashMap;
 use regex::Regex;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 enum GateType {
     AND,
     OR,
     XOR
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Gate<'a> {
     target_1: &'a str,
     target_2: &'a str,
     result:   &'a str,
     gate:     GateType
+}
+fn find_gate<'a> (
+    gates: &Vec<Gate<'a>>,
+    target_1: String,
+    target_2: String,
+    gate_type: GateType
+) -> Option<Gate<'a>> {
+    for gate in gates {
+        if (gate.target_1 == &target_1 || gate.target_2 == &target_1) && 
+           (gate.target_1 == &target_2 || gate.target_2 == &target_2) &&
+           gate.gate == gate_type
+        {
+            return Some(gate.clone());
+        }
+    }
+
+    None
 }
 fn main() {
     let gate_re = Regex::new(r"(.+) (OR|AND|XOR) (.+) -> (.+)")
@@ -20,7 +36,8 @@ fn main() {
 
     let data = std::fs::read_to_string("input.txt")
         .unwrap();
-    let mut connections: HashMap<&str, bool> = data
+    /*
+    let connections: HashMap<&str, bool> = data
         .split("\n\n")
         .next().unwrap()
         .lines()
@@ -37,7 +54,7 @@ fn main() {
             hm.insert(name, num);
 
             hm
-        });
+        }); */
     let mut gates = Vec::new();
     let gates_input = data
         .split("\n\n")
@@ -59,50 +76,59 @@ fn main() {
             }
         });
     }
+    //println!("{gates:?}");
 
-    while !gates.is_empty() {
-        gates = gates.into_iter()
-            .filter(|gate| {
-                if !connections.contains_key(gate.target_1) ||
-                   !connections.contains_key(gate.target_2) {
-                    return true;
-                }
+    let mut cin = find_gate(&gates, 
+        String::from("x00"),
+        String::from("y00"),
+        GateType::AND
+    ).unwrap().result;
+    for i in 1..=44 {
+        println!("Made it to operation #{i:02}");
+        let x_reg = format!("x{i:02}");
+        let y_reg = format!("y{i:02}");
 
-                let target_1_val = connections[gate.target_1];
-                let target_2_val = connections[gate.target_2];
+        let sum_1 = find_gate(&gates, 
+            x_reg.clone(), 
+            y_reg.clone(), 
+            GateType::XOR
+        ).expect("Invalid SUM_1 operation!").result;
+        println!("`sum-1`: {sum_1}");
 
-                match gate.gate {
-                    GateType::AND => {
-                        connections.insert(gate.result, target_1_val && target_2_val);
-                    },
-                    GateType::OR => {
-                        connections.insert(gate.result, target_1_val || target_2_val);
-                    },
-                    GateType::XOR => {
-                        connections.insert(gate.result, target_1_val ^ target_2_val);
-                    }
-                }
+        let output = find_gate(&gates, 
+            sum_1.to_string(), 
+            cin.to_string(), 
+            GateType::XOR
+        ).expect("No valid output operation!").result;
+        assert_eq!(output, &format!("z{i:02}"));
 
-                false
-            })
-            .collect();
+        let carry_1 = find_gate(&gates, 
+            sum_1.to_string(), 
+            cin.to_string(), 
+            GateType::AND
+        ).expect("No valid `carry_1` operation!").result;
+        println!("`carry_1`: {carry_1}");
+
+        let carry_2 = find_gate(&gates, 
+            x_reg, 
+            y_reg, 
+            GateType::AND
+        ).expect("No valid `carry_2` operation!").result;
+        println!("`carry_2`: {carry_2}");
+
+        cin = find_gate(&gates, 
+            carry_1.to_string(), 
+            carry_2.to_string(), 
+            GateType::OR
+        ).expect("No valid `c-out` operation!").result;
+        println!("New `cin`: {cin}");
     }
 
-    let mut z_wires: Vec<(&str, bool)> = connections.into_iter()
-        .filter(|(wire, _)| wire.starts_with("z"))
-        .collect();
-    z_wires.sort_by_key(|(wire, _)| format!(
-        "{:02}{:02}",
-        wire.chars().nth(1).unwrap() as u32 - 48,
-        wire.chars().nth(2).unwrap() as u32 - 48
-    ).parse::<u32>().unwrap());
+    // pair 1: kwb and z12
+    // pair 2: qkf and z16
+    // pair 3: tgr and z24
+    // pair 4: jqn and cph
+    // cph,jqn,kwb,qkf,tgr,z12,z16,z24
 
-    let mut ret = 0usize;
-    for (ind, (_, val)) in z_wires.into_iter().enumerate() {
-        if val {
-            ret += 2usize.pow(ind as u32);
-        }
-    }
-
-    println!("Final number: {ret}");
+    println!("Success ;3");
 }

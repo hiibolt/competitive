@@ -1,0 +1,16 @@
+`gtb` is our c-in
+
+# XOR into sum_1
+- y01 XOR x01 -> tdh
+
+# XOR sum_1 and c-in into result reg
+- tdh XOR gtb -> z01
+
+# AND sum_1 and c-in into carry_1
+- gtb AND tdh -> svv
+
+# AND y01 and x01 into carry_2
+- x01 AND y01 -> vpp
+
+# OR carry_1 and carry_2 into c-in
+- svv OR vpp -> prf
