@@ -1,5 +1,5 @@
 /**
- * 1971. "Find Center of Star Graph"
+ * 1791. "Find Center of Star Graph"
  * 
  * Difficulty: Easy
  * Tags: Graph
