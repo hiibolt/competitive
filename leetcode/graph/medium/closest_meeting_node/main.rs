@@ -1,9 +1,9 @@
 /**
- * 2359. Find Closest Node to Given Two Nodes
+ * 2359. "Find Closest Node to Given Two Nodes"
  * 
- * > Difficulty - Medium
- * > Tags - Graph, DFS
- * > Runtime - Beats 79%
+ * Difficulty: Medium
+ * Tags: Graph, DFS
+ * Runtime: Beats 79%
  */
 
 impl Solution {
