@@ -2,7 +2,8 @@
  * 258. "Add Digits"
  * 
  * Difficulty: Easy
- * Tags: 
+ * Tags: Math, Simulation, Number Theory
+ * Runtime: Beats 100%
  */
 impl Solution {
     pub fn add_digits(num: i32) -> i32 {
