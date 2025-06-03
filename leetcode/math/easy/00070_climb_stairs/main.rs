@@ -1,5 +1,5 @@
 /**
- * 67. "Climb Stairs"
+ * 70. "Climb Stairs"
  * 
  * Difficulty: Easy
  * Tags: Math, Dynamic Programming, Memoization
