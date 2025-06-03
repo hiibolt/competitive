@@ -6,19 +6,7 @@
  * Runtime: Beats 100%
  */
 impl Solution {
-    pub fn is_power_of_two(mut n: i32) -> bool {
-        if n <= 0 {
-            return false;
-        }
-
-        while n != 1 {
-            if n % 2 != 0 {
-                return false;
-            }
-
-            n /= 2;
-        }
-
-        true
+    pub fn is_power_of_two(n: i32) -> bool {
+        n > 0 && n.count_ones() == 1
     }
 }
